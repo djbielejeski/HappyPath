@@ -184,9 +184,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\HappyPath.Services\HappyPath.Services.csproj">
       <Project>{172bf701-9e3e-409a-8086-8ce58603145b}</Project>
       <Name>HappyPath.Services</Name>
