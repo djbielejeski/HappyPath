@@ -16,6 +16,7 @@ namespace HappyPath.Services.Domain
         void AddOrUpdate(T item);
         void AddOrUpdate(List<T> items);
         void Delete(long id);
+        int Count(Expression<Func<T, bool>> expression);
     }
 
     public class BaseEntityService<TEntity> : IBaseEntityService<TEntity> where TEntity : class, IBaseEntity, new()
@@ -28,7 +29,7 @@ namespace HappyPath.Services.Domain
 
         public virtual IQueryable<TEntity> GetAll(Expression<Func<TEntity, bool>> expression, int count = 0, int pageOffset = -1)
         {
-            var query = _session.All<TEntity>().Where(expression);
+            var query = _session.All<TEntity>().OrderBy(x => x.Id).Where(expression);
 
             if (count > 0 && pageOffset >= 0)
             {
@@ -51,14 +52,26 @@ namespace HappyPath.Services.Domain
 
         public virtual void AddOrUpdate(List<TEntity> items)
         {
-            _session.AddOrUpdate<TEntity>(items);
-            _session.CommitChanges();
+            //Batch this in 5000 chunks
+            int batchSize = 5000;
+            for (var i = 0; i < items.Count; i += batchSize)
+            {
+                var batch = items.Skip(i).Take(batchSize).ToList();
+
+                _session.AddOrUpdate<TEntity>(batch);
+                _session.CommitChanges();
+            }
         }
 
         public virtual void Delete(long id)
         {
             _session.Delete<TEntity>(x => x.Id == id);
             _session.CommitChanges();
+        }
+
+        public virtual int Count(Expression<Func<TEntity, bool>> expression)
+        {
+            return _session.All<TEntity>().Where(expression).Count();
         }
     }
 }
